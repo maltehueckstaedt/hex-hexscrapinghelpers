@@ -1,23 +1,25 @@
-#' Scrape fehlende Kursdaten aus dem HIS-System
+#' Scrape fehlende Veranstaltungsdaten aus dem Hochschulportal
 #'
-#' Führt ein halbautomatisiertes Scraping für Kurse durch, deren Informationen fehlen,
-#' basierend auf Titel und Nummer. Die Ergebnisse werden in einer RDS-Datei gespeichert.
+#' Diese Funktion automatisiert den Scraping-Prozess für fehlende Veranstaltungsdaten,
+#' indem sie Titel und Nummern aus `missing_data` verwendet, im Webinterface sucht,
+#' relevante Informationen extrahiert und die Ergebnisse in eine RDS-Datei speichert.
 #'
-#' @param rmdr Ein `RSelenium::remoteDriver`-Objekt, das mit dem Browser verbunden ist.
-#' @param missing_data Ein `tibble` mit den Spalten `titel` und `nummer`, die gescraped werden sollen.
-#' @param num_sem_selector Eine Zeichenkette oder Zahl zur Auswahl des Semesters (z. B. `"2"`).
+#' @param rmdr Ein RSelenium RemoteDriver-Objekt, das mit einer Browser-Session verbunden ist.
+#' @param missing_data Ein tibble mit mindestens den Spalten `titel` und `nummer`, die zu scrapenden Veranstaltungen.
+#' @param num_sem_selector Ein Integer oder String, der das Semester im Dropdown selektiert (z.B. "1" für das erste).
+#' @param file_name Der Name der RDS-Datei, in die die Ergebnisse geschrieben werden sollen.
 #'
-#' @return Ein `tibble` mit den gesammelten Kursinformationen.
+#' @return Ein tibble mit gescrapten Daten pro Veranstaltung.
+#' Die Daten werden außerdem automatisch in eine RDS-Datei exportiert.
 #' @export
-scrape_for_missing_data <- function(rmdr, missing_data, num_sem_selector) {
+scrape_for_missing_data <- function(rmdr, missing_data, num_sem_selector, file_name) {
   total <- nrow(missing_data)  # Gesamtzahl der Zeilen
   result_tibble <- tibble()  # Leeres tibble für die Ergebnisse
   
   # Prüfe, ob die RDS-Datei existiert und benenne sie entsprechend um
-  file_name <- "course_data_missing.RDS"
   counter <- 1
   while (file.exists(file_name)) {
-    file_name <- paste0("course_data_missing", counter, ".RDS")
+    file_name <- paste0(file_name, "_", counter, ".RDS")
     counter <- counter + 1
   }
   
@@ -59,7 +61,7 @@ scrape_for_missing_data <- function(rmdr, missing_data, num_sem_selector) {
     field_titel <- rmdr$findElement(using = "css selector", suchbegriff)
     field_titel$clickElement()
     field_titel$sendKeysToElement(list(titel))
- 
+
     # Nummer eingeben
     Sys.sleep(1.5)
     ccs_nummer <- "#genericSearchMask\\:search_e4ff321960e251186ac57567bec9f4ce\\:cm_exa_eventprocess_basic_data\\:fieldset\\:inputField_2_7cc364bde72c1b1262427dc431caece3\\:id7cc364bde72c1b1262427dc431caece3"
@@ -68,17 +70,12 @@ scrape_for_missing_data <- function(rmdr, missing_data, num_sem_selector) {
     ccs_nummer$sendKeysToElement(list(nummer))
 
     # Suchen klicken
-    tryCatch({
-      ccs_such <- "#genericSearchMask\\:buttonsBottom\\:search"
-      ccs_such <- rmdr$findElement(using = "css selector", ccs_such)
-      rmdr$executeScript("arguments[0].scrollIntoView(true);", list(ccs_such))
-      Sys.sleep(3)
-      ccs_such$clickElement()
-    }, error = function(e) {
-      message("Ein Fehler ist aufgetreten: ", e$message)
-    })
+    Sys.sleep(1.5)
+    ccs_such <- "#genericSearchMask\\:buttonsBottom\\:search"
+    ccs_such <- rmdr$findElement(using = "css selector", ccs_such)
+    ccs_such$clickElement()
 
-    # URL klicken
+    # Finden klicken
     Sys.sleep(1.5)
     ccs_find <- "#genSearchRes\\:id3f3bd34c5d6b1c79\\:id3f3bd34c5d6b1c79Table\\:0\\:tableRowAction"
     ccs_find <- rmdr$findElement(using = "css selector", ccs_find)

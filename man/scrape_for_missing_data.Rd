@@ -2,21 +2,25 @@
 % Please edit documentation in R/scrape_for_missing_data.r
 \name{scrape_for_missing_data}
 \alias{scrape_for_missing_data}
-\title{Scrape fehlende Kursdaten aus dem HIS-System}
+\title{Scrape fehlende Veranstaltungsdaten aus dem Hochschulportal}
 \usage{
-scrape_for_missing_data(rmdr, missing_data, num_sem_selector)
+scrape_for_missing_data(rmdr, missing_data, num_sem_selector, file_name)
 }
 \arguments{
-\item{rmdr}{Ein `RSelenium::remoteDriver`-Objekt, das mit dem Browser verbunden ist.}
+\item{rmdr}{Ein RSelenium RemoteDriver-Objekt, das mit einer Browser-Session verbunden ist.}
 
-\item{missing_data}{Ein `tibble` mit den Spalten `titel` und `nummer`, die gescraped werden sollen.}
+\item{missing_data}{Ein tibble mit mindestens den Spalten `titel` und `nummer`, die zu scrapenden Veranstaltungen.}
 
-\item{num_sem_selector}{Eine Zeichenkette oder Zahl zur Auswahl des Semesters (z. B. `"2"`).}
+\item{num_sem_selector}{Ein Integer oder String, der das Semester im Dropdown selektiert (z.B. "1" für das erste).}
+
+\item{file_name}{Der Name der RDS-Datei, in die die Ergebnisse geschrieben werden sollen.}
 }
 \value{
-Ein `tibble` mit den gesammelten Kursinformationen.
+Ein tibble mit gescrapten Daten pro Veranstaltung.
+Die Daten werden außerdem automatisch in eine RDS-Datei exportiert.
 }
 \description{
-Führt ein halbautomatisiertes Scraping für Kurse durch, deren Informationen fehlen,
-basierend auf Titel und Nummer. Die Ergebnisse werden in einer RDS-Datei gespeichert.
+Diese Funktion automatisiert den Scraping-Prozess für fehlende Veranstaltungsdaten,
+indem sie Titel und Nummern aus `missing_data` verwendet, im Webinterface sucht,
+relevante Informationen extrahiert und die Ergebnisse in eine RDS-Datei speichert.
 }
