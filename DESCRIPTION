@@ -1,0 +1,26 @@
+Package: SVScrapeR
+Type: Package
+Title: Scrape HISone-Websites
+Version: 1.0.0
+Author: Malte Hueckstaedt
+Maintainer: The package maintainer <malte.hueckstaedt@stifterverband.de>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Depends:
+  R (>= 4.0),
+  RSelenium,
+  crayon,
+  dplyr,
+  janitor,
+  rvest,
+  stringr,
+  beepr,
+  tibble,
+  tidyr,
+  magrittr,
+  purrr,
+  readr

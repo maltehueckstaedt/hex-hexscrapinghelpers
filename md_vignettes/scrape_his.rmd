@@ -1,0 +1,153 @@
+---
+title: "Scrape HISone"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Einführung
+
+`SVScrapeR` hilft, HISone-Seiten zu scrapen und ist im Kern ein Wrapper verschiedener `RSelenium`-Funktionen. `SVScrapeR` soll im laufe der Zeit jedoch zu einem nicht nur für HISone-Seiten optimierten Scraping-Paket erweitert werden. 
+
+### Warum `SVScrapR`?
+
+Bis Ende 2025 werden vermutlich >50% der für HEX zu scrapenden Universitäten auf HISone-Vorlesungsverzeichnisse umgestiegen sein. HISone-Seiten sind nicht-statisch. Sie müssen daher mit einem Selenium-Driver gescrapet werden. Das scraping von HISone-Seiten hat sich dabei als nicht trivial erwiesen. Netzwerkprobleme (sowohl auf Seite des SVs als auch auf der der Hoster) sowie lange Scrapingprozesse erschweren die Datenerhebung und erfordern komplexe Funktionen, die Scrapingskripte unübersichtlich, kontraintuitiv und schwer wartbar machen. 
+
+Durch die Erstellung eines R-Pakets anstatt eines großen Skripts, wird die prozessierbarkeit, Wiederverwendbarkeit und Wartbarkeit der Scrapingcodes erheblich verbessert:
+
+Scrapingskript Wuppertal: `827 Zeilen`
+Scrapingskript Tübingen: `107 Zeilen`
+
+Funktionen werden klar dokumentiert und können problemlos in verschiedenen Scrapingprozessen genutzt werden. 
+`SVScrapR` bietet so eine effiziente Möglichkeit, Abhängigkeiten zu verwalten und die Versionen des Codes zu kontrollieren, was eine stabile und konsistente Nutzung gewährleistet.
+ 
+## Exemplarische Anwendung
+
+### Installation
+
+Im folgenden wird `SVScrapeR` exemplarisch am *WUESTUDY* vorgeführt. Prinzipiell sollte es aber für alle HISone-basierten Vorlesungsverzeichnisse mit nur wenig Modifikation nutzbar sein. 
+
+In einem ersten Schritt laden wir das Paket in der aktuellen Version `0.1.0` von Gitlab, installieren und laden es in R:
+
+```{r}
+#install.packages("C:/Users/mhu/Downloads/hex-hexscrapinghelpers-0.1.0.tar.gz", repos = NULL, type = "source") 
+library(SVScrapeR)
+```
+
+### Start einer Chromedriver-Instanz
+
+In einem weiteren Schritt starten wir eine Chromedriver-Instanz und maximieren das Browserfenster.
+
+```{r}
+library(RSelenium)
+driver <- rsDriver(
+  browser = "chrome",
+  chromever = "latest",
+  port = 1234L
+)
+
+rmdr <- driver[["client"]]
+rmdr$maxWindowSize()
+```
+
+Wir richten mit `select_semester_and_set_courses()` unsere Ausgangssituation ein:
+
+1. Wir definieren mit `rmdr` den oben initialisierten Remotedriver.
+2. Wird definieren unsere `base_url`. Dies ist die Veranstaltungssuche der entsprechenden HIS-Site. Meist zu finden über `Landingpage > Veranstaltungen suchen`. Für die Uni-Würzburg ist dies (dieser)[https://wuestudy.zv.uni-wuerzburg.de/qisserver/pages/startFlow.xhtml?_flowId=searchCourseNonStaff-flow&_flowExecutionKey=e4s1"] Link.
+3. Wir definieren den CSS Selector des Dropdown-Menüs der Semesterauswahl `sem_dropdown`.
+4. Wir definieren `num_sem_selector`, der die Instanznummer des Selectors der Semester im Dropdown-Menü definiert. Hier das Semester `SS19`.
+5. Wir definieren mit `num_courses_selector`den Selector des Feldes, in dem die Anzahl der Kurse pro Übersichtsseite verändert werden kann.
+6. Wir definieren mit `num_courses`, wie viele Kurse pro Überssichtsseite angezeigt werden. Hier: 10 Einträge pro Übersichtsseite.
+7. Wir definieren den `css selector` des Suchfeldes, um eine leere Suche für ein spezifiziertes Semester ausführen zu können und so alle Kurse eines Semesters angezeigt zu bekommen.
+
+```{r}
+rmdr <- rmdr
+base_url <- "https://wuestudy.zv.uni-wuerzburg.de/qisserver/pages/startFlow.xhtml?_flowId=searchCourseNonStaff-flow&_flowExecutionKey=e4s1"
+sem_dropdown <- "#genericSearchMask\\:search_e4ff321960e251186ac57567bec9f4ce\\:cm_exa_eventprocess_basic_data\\:fieldset\\:inputField_3_abb156a1126282e4cf40d48283b4e76d\\:idabb156a1126282e4cf40d48283b4e76d\\:termSelect_label"
+num_sem_selector <- 12
+num_courses_selector <- "#genSearchRes\\:id3df798d58b4bacd9\\:id3df798d58b4bacd9Navi2NumRowsInput"
+num_courses <- "10"
+search_field <- "#genericSearchMask\\:search_e4ff321960e251186ac57567bec9f4ce\\:cm_exa_eventprocess_basic_data\\:fieldset\\:inputField_0_1ad08e26bde39c9e4f1833e56dcce9b5\\:id1ad08e26bde39c9e4f1833e56dcce9b5"
+
+SVScrapeR::select_semester_and_set_courses(
+  rmdr,
+  base_url,
+  num_sem_selector,
+  num_courses,
+  sem_dropdown,
+  search_field,
+  num_courses_selector
+)
+```
+
+### URL-Selektoren generieren
+
+Wir definieren weiterhin das Muster der CSS Selektoren für die URLs der Kurse. Der erste CSS Selektor einer Kurs-URL sollte etwas diese Form annehmen: `#genSearchRes\:id3df798d58b4bacd9\:id3df798d58b4bacd9Table\:0\:tableRowAction`. Wir ersetzen `\:0\` durch `\:%d\` um die fortlaufenden CSS-Selektoren für das ganze Semester zu erzeugen. Nebenbemerkung: In R muss ein Backslash mit einem zweiten Backslash *escaped* werden, da ansonsten der einfache Backslash als Escape-Zeichen interpretiert wird.
+
+Bei einer Darstellung der Hauptseite mit zehn Kursen pro Seite, erstellen wir weiterhin 10er-Chunks, um nach dem Durchlauf durch die Kurse einer Seite im Menüband auf `Weiter` zu klicken und dann mit den URLs der nächsten Seite fortzufahren. Für die Vorführungszwecke werden im folgenden nur der 1. Chunk mit 10 URLs durchlaufen.
+
+```{r}
+css_selectors <- generate_url_selectors(rmdr, css_first_selector = "#genSearchRes\\:id3df798d58b4bacd9\\:id3df798d58b4bacd9Table\\:%d\\:tableRowAction")
+chunks <- split(css_selectors, ceiling(seq_along(css_selectors) / 10))
+chunks <- chunks[c("1")]
+```
+
+### Scraping starten
+
+Wir starten das Scraping, in dem wir `scrape_his()` den Remotedriver, die Chunks und die CSS Selektoren übergeben.
+
+```{r}
+course_data_wuerzburg_ss19 <- scrape_his(chunks, rmdr, css_selectors)
+```
+
+### Beende Prozess
+
+Wir schließen den Remotedriver und beenden den entsprechenden Java-Prozess.
+
+```{r}
+rmdr$close()
+system("taskkill /im java.exe /f", intern = FALSE, ignore.stdout = FALSE)
+```
+
+### Bekannte Probleme
+
+#### Abbruch des Scraping und Wiederaufnahme
+
+Trotz aller Mühe, scrapet das Funktionspaket i.d.R. nicht >6000 Kurse ohne absturz durch. Noch ist es unklar, warum weiterhin abstürze geschehen. Sollten Abstürze passieren, kann im Terminal der Selector des letzten Kurses gesucht werden, der nicht mehr erfolgreich gescrapet wurde. Dieser könnte Beispielsweise so aussehen: `#genSearchRes\:id3df798d58b4bacd9\:id3df798d58b4bacd9Table\:156\:tableRowAction`. Da es recht müheselig ist, den Chromdriver wieder auf die Übersichtsseite manuel zu bewegen, auf der der letze Kurs nicht mehr erfolgreich gescrapet wurde, wurde die Funktion `go_to_last_active_page()` geschrieben. Ihr muss nur die Instanznummer des Selectors übergeben werden. Anschließend navigiert die Funktion den Driver zur entsprechenden Übersichtsseite und zündet ein Signalton bei Fertigstellung.  
+ 
+```{r}
+library(RSelenium)
+driver <- rsDriver(
+  browser = "chrome",
+  chromever = "latest",
+  port = 1234L
+)
+
+rmdr <- driver[["client"]]
+rmdr$maxWindowSize()
+
+SVScrapeR::select_semester_and_set_courses(
+  rmdr,
+  base_url,
+  num_sem_selector,
+  num_courses,
+  sem_dropdown,
+  search_field,
+  num_courses_selector
+)
+
+Sys.sleep(3)
+
+go_to_last_active_page(rmdr, 126)
+```
+
+#### Beende Prozess
+
+Wir schließen den Remotedriver und beenden den entsprechenden Java-Prozess.
+
+```{r}
+rmdr$close()
+system("taskkill /im java.exe /f", intern = FALSE, ignore.stdout = FALSE)
+```
