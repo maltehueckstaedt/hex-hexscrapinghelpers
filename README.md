@@ -5,16 +5,29 @@
 
 ## Installation
 
-`SVScrapeR 1.0.0` kann [hier](http://srv-data01:30080/hex/hex-hexscrapinghelpers/-/archive/1.0.0/hex-hexscrapinghelpers-1.0.0.tar.gz) geladen werden und folgendermaßen installiert werden:
+`SVScrapeR 1.0.0` kann folgendermaßen installiert werden:
 
 ```r
-install.packages("C:/Users/DEIN_BENUTZERNAME/Downloads/hex-hexscrapinghelpers-1.0.0.tar.gz", repos = NULL, type = "source") 
-library(SVScrapeR)
+remotes::install_github("maltehueckstaedt/hex-hexscrapinghelpers")
 ```
+
+## Vorgehen des Paketes
+
+Das Paket geht folgendermaßen im Rahmen des Scrapings vor:
+
+1. Der Remote-Driver wird gestartet.
+2. Die Basiswebsite wird aufgerufen und das zu scrapende Semester wird ausgewählt und aufgerufen.
+3. Es werden die Base-Informationen gescrapet, d.h. alle Informationen, die auf den Übersichtsseiten der Semester angezeigt werden. 
+4. Insbesondere der Titel wird aufbereitet, um über die Suchmaske von HisOne die entsprechenden Kurse zu suchen und zu finden. 
+5. Das Scraping wird vorgenommen. Für jeden Kurs wird die Suchmaske aufgesucht, das Semester ausgewählt, der Kurstitel und die Kursnummer in die Maske eingegeben und der Kurs gesucht. Anschließend werden die relevaten Daten des Kurses erhoben. Die gewonnen Informationen werden Zeilenweise zusammengefügt.
+6. Der Chromedriver wird geschlossen und der Java-Prozess gekillt.
+7. Die gewonnenen Daten werden (ggf. zusammengeführt und dann) exportiert. 
+ 
+![](img\ScrapeR_workflow.png)
 
 ## Nutzung
 
-Siehe für eine beispielhafte Anwendung [diese](http://srv-data01:30080/hex/hex-hexscrapinghelpers/-/blob/main/md_vignettes/scrape_his.md?ref_type=heads) Vignette.
+Siehe für eine beispielhafte Anwendung [diese](http://srv-data01:30080/hex/hex_scraping/-/snippets/9) Vignette.
 
 ## Support
 
