@@ -1,7 +1,7 @@
 # SVScrapeR <img src="img/SVScrapeR.svg" align="right" height="200" /></a>
 
 ## Beschreibung  
-`SVScrapeR` ist ein Funktionspaket, das den Scrapingprozess für HEX standardisieren und dadurch einfacher reproduzierbar und wartbar machen soll. In der aktuellen Version [`1.0.0`](http://srv-data01:30080/hex/hex-hexscrapinghelpers/-/releases/1.0.0) enthält `SVScrapeR` lediglich Rselenium-Wrapper zum Scrapen von HISone-Seiten, die voraussichtlich ab Ende 2025 mehr als 50 % der Vorlesungsverzeichnisse staatlicher deutscher Universitäten bereitstellen werden. Mit `SVScrapeR` sollten diese Universitäten mit nur wenigen Anpassungen von CSS-Selektoren problemlos gescraped werden können.
+`SVScrapeR` ist ein Funktionspaket, das den Scrapingprozess für HEX standardisieren und dadurch einfacher reproduzierbar und wartbar machen soll. In der aktuellen Version [`1.0.0`](http://srv-data01:30080/hex/hex-hexscrapinghelpers/-/releases/1.0.2) enthält `SVScrapeR` lediglich Rselenium-Wrapper zum Scrapen von HISone-Seiten, die voraussichtlich ab Ende 2025 mehr als 50 % der Vorlesungsverzeichnisse staatlicher deutscher Universitäten bereitstellen werden. Mit `SVScrapeR` sollten diese Universitäten mit nur wenigen Anpassungen von CSS-Selektoren problemlos gescraped werden können.
 
 ## Installation
 
