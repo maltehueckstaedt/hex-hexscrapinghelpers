@@ -22,8 +22,7 @@ pkgload::load_all()
 #   → z. B. Bugfix, Tippfehler korrigiert
 #   → Beispiel: 2.3.1 → 2.3.2
 
-usethis::use_version("major")
-2
+usethis::use_version("patch")
 # 3. Führe Checks durch, um sicherzustellen, dass alles funktioniert
 devtools::check()  # Oder check(document = TRUE) falls nötig
 

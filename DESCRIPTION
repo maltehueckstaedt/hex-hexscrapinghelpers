@@ -1,7 +1,7 @@
 Package: SVScrapeR
 Type: Package
 Title: Scrape HISone-Websites
-Version: 1.0.1
+Version: 1.0.2
 Author: Malte Hueckstaedt
 Maintainer: The package maintainer <malte.hueckstaedt@stifterverband.de>
 Description: More about what it does (maybe more than one line)
